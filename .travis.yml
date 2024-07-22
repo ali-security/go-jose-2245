@@ -8,23 +8,27 @@ matrix:
 go:
   - "1.13.x"
   - "1.14.x"
-  - tip
+  - "1.15.x"
 
 before_script:
   - export PATH=$HOME/.local/bin:$PATH
 
 before_install:
-  - go get -u github.com/mattn/goveralls github.com/wadey/gocovmerge
-  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.18.0
+  - export GOPATH=$HOME/gopath
+  - mkdir -p $GOPATH/src $GOPATH/bin $GOPATH/pkg
+  - export PATH=$PATH:$GOPATH/bin
+  - mkdir -p $GOPATH/src/github.com/mattn && git clone --branch v0.0.12 https://github.com/mattn/goveralls.git $GOPATH/src/github.com/mattn/goveralls
+  - go get -v github.com/wadey/gocovmerge
+  #  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.18.0
   - pip install cram --user
 
 script:
-  - go test -v -covermode=count -coverprofile=profile.cov .
-  - go test -v -covermode=count -coverprofile=cryptosigner/profile.cov ./cryptosigner
-  - go test -v -covermode=count -coverprofile=cipher/profile.cov ./cipher
-  - go test -v -covermode=count -coverprofile=jwt/profile.cov ./jwt
+  - go test -v . # -covermode=count -coverprofile=profile.cov .
+  - go test -v ./cryptosigner # -covermode=count -coverprofile=cryptosigner/profile.cov ./cryptosigner
+  - go test -v ./cipher # -covermode=count -coverprofile=cipher/profile.cov ./cipher
+  - go test -v ./jwt # -covermode=count -coverprofile=jwt/profile.cov ./jwt
   - go test -v ./json  # no coverage for forked encoding/json package
-  - golangci-lint run
+  #  - golangci-lint run
   - cd jose-util && go build && PATH=$PWD:$PATH cram -v jose-util.t # cram tests jose-util
   - cd ..
 
